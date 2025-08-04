@@ -76,9 +76,9 @@ ed25519_keypair_from_seed_s2n_bignum:
 // See Ed25519 sign in rfc8032 5.1.6
 // Inputs: out_sig[64], message[message_len], message_len,
 //	  	private_key[64], dom2_buffer[dom2_buffer_len], dom2_buffer_len
-// Outputs: if dom2_buffer and dom2_buffer_len are correct and the message has been pre-hashed for Ed25519ph,
-// 		then write the correct signature to out_sig,
-//		else no guarantee.
+// Pre-condition: dom2_buffer and dom2_buffer_len are correct and the message has been pre-hashed for Ed25519ph,
+// 		private_key contains the seed followed by the corresponding public key
+// Outputs: write the correct signature to out_sig
 //    void ed25519_sign_common_s2n_bignum(
 // 						uint8_t out_sig[ED25519_SIGNATURE_LEN], const uint8_t *message,
 // 						size_t message_len, const uint8_t private_key[ED25519_PRIVATE_KEY_LEN],
@@ -171,3 +171,135 @@ k[0:63] = sha512_s2n_bignum(dom2_buffer || out_sig[0:31] || private_key[32:63] |
 // out_sig = R || S
 bignum_mod_n25519(k, 8, k);
 bignum_madd_n25519_selector(out_sig + 32, k, s, r);
+
+
+.global	ed25519_verify_common_s2n_bignum
+.balign 4
+// ----------------------------------------------------------------------------
+// Auxiliary function that verifies the Ed25519/Ed25519ctx/Ed25519ph signature of a message
+// See Ed25519 verify in rfc8032 5.1.7
+// Inputs: message[message_len], message_len, signature[64],
+//	  	public_key[32], dom2_buffer[dom2_buffer_len], dom2_buffer_len
+// Pre-condition: dom2_buffer and dom2_buffer_len are correct and the message has been pre-hashed for Ed25519ph
+// Outputs: return 1 if the verification succeeds, return 0 otherwise
+//    int ed25519_verify_common_s2n_bignum(
+// 						const uint8_t *message, size_t message_len,
+// 						const uint8_t signature[ED25519_SIGNATURE_LEN],
+//						const uint8_t public_key[ED25519_PUBLIC_KEY_LEN],
+// 						uconst uint8_t *dom2_buffer, size_t dom2_buffer_len);
+//
+// Standard ARM ABI: X0 = message, X1 = message_len, X2 = signature,
+//	 	X3 = public_key, X4 = dom2_buffer, X5 = dom2_buffer_len
+// ----------------------------------------------------------------------------
+ed25519_verify_common_s2n_bignum:
+
+
+.global	ed25519_sign_no_self_test_s2n_bignum
+.balign 4
+// ----------------------------------------------------------------------------
+// Compute the (pure) Ed25519 signature of a message
+// Inputs: out_sig[64], message[message_len], message_len, private_key[64]
+// Pre-condition: private_key contains the seed followed by the corresponding public key
+// Outputs: write the correct signature to out_sig and return 1
+//    extern int ed25519_sign_no_self_test_s2n_bignum(
+// 						uint8_t out_sig[ED25519_SIGNATURE_LEN], const uint8_t *message,
+// 						size_t message_len, const uint8_t private_key[ED25519_PRIVATE_KEY_LEN]);
+//
+// Standard ARM ABI: X0 = out_sig, X1 = message, X2 = message_len, X3 = private_key
+// ----------------------------------------------------------------------------
+ed25519_sign_no_self_test_s2n_bignum:
+
+
+.global	ed25519_verify_no_self_test_s2n_bignum
+.balign 4
+// ----------------------------------------------------------------------------
+// Verify the (pure) Ed25519 signature of a message
+// Inputs: message[message_len], message_len, signature[64], public_key[32]
+// Outputs: return 1 if the verification succeeds, return 0 otherwise
+//    extern int ed25519_verify_no_self_test_s2n_bignum(
+// 						const uint8_t *message, size_t message_len,
+// 						const uint8_t signature[ED25519_SIGNATURE_LEN],
+//						const uint8_t public_key[ED25519_PUBLIC_KEY_LEN]);
+//
+// Standard ARM ABI: X0 = message, X1 = message_len, X2 = signature, X3 = public_key
+// ----------------------------------------------------------------------------
+ed25519_verify_no_self_test_s2n_bignum:
+
+
+.global	ed25519ctx_sign_no_self_test_s2n_bignum
+.balign 4
+// ----------------------------------------------------------------------------
+// Compute the Ed25519ctx signature of a message
+// Inputs: out_sig[64], message[message_len], message_len, private_key[64],
+//		context[context_len], context_len
+// Pre-condition: private_key contains the seed followed by the corresponding public key
+// Outputs: if 0 < context_len <= 255, write the correct signature to out_sig and return 1
+//		else return 0
+//    extern int ed25519ctx_sign_no_self_test_s2n_bignum(
+// 						uint8_t out_sig[ED25519_SIGNATURE_LEN], const uint8_t *message,
+// 						size_t message_len, const uint8_t private_key[ED25519_PRIVATE_KEY_LEN],
+//						const uint8_t *context, size_t context_len) ;
+//
+// Standard ARM ABI: X0 = out_sig, X1 = message, X2 = message_len,
+//	 	X3 = private_key, X4 = context, X5 = context_len
+// ----------------------------------------------------------------------------
+ed25519ctx_sign_no_self_test_s2n_bignum:
+
+
+.global	ed25519ctx_verify_no_self_test_s2n_bignum
+.balign 4
+// ----------------------------------------------------------------------------
+// Verify the Ed25519ctx signature of a message
+// Inputs: message[message_len], message_len, signature[64], public_key[32],
+//		context[context_len], context_len
+// Outputs: return 1 if the verification succeeds, return 0 otherwise
+//    extern int ed25519ctx_verify_no_self_test_s2n_bignum(
+// 						const uint8_t *message, size_t message_len,
+// 						const uint8_t signature[ED25519_SIGNATURE_LEN],
+//						const uint8_t public_key[ED25519_PUBLIC_KEY_LEN])
+// 						const uint8_t *context, size_t context_len);
+//
+// Standard ARM ABI: X0 = message, X1 = message_len, X2 = signature, X3 = public_key,
+//		X4 = context, X5 = context_len
+// ----------------------------------------------------------------------------
+ed25519ctx_verify_no_self_test_s2n_bignum:
+
+	
+
+.global	ed25519ph_sign_no_self_test_s2n_bignum
+.balign 4
+// ----------------------------------------------------------------------------
+// Compute the Ed25519ph signature of a message
+// Inputs: out_sig[64], message[message_len], message_len, private_key[64],
+//		context[context_len], context_len
+// Pre-condition: private_key contains the seed followed by the corresponding public key
+// Outputs: if context_len <= 255, write the correct signature to out_sig and return 1
+//		else return 0
+//    extern int ed25519ph_sign_no_self_test_s2n_bignum(
+// 						uint8_t out_sig[ED25519_SIGNATURE_LEN], const uint8_t *message,
+// 						size_t message_len, const uint8_t private_key[ED25519_PRIVATE_KEY_LEN],
+//						const uint8_t *context, size_t context_len) ;
+//
+// Standard ARM ABI: X0 = out_sig, X1 = message, X2 = message_len,
+//	 	X3 = private_key, X4 = context, X5 = context_len
+// ----------------------------------------------------------------------------
+ed25519ph_sign_no_self_test_s2n_bignum
+
+
+.global	ed25519ph_verify_no_self_test_s2n_bignum
+.balign 4
+// ----------------------------------------------------------------------------
+// Verify the Ed25519ph signature of a message
+// Inputs: message[message_len], message_len, signature[64], public_key[32],
+//		context[context_len], context_len
+// Outputs: return 1 if the verification succeeds, return 0 otherwise
+//    extern int ed25519ph_verify_no_self_test_s2n_bignum(
+// 						const uint8_t *message, size_t message_len,
+// 						const uint8_t signature[ED25519_SIGNATURE_LEN],
+//						const uint8_t public_key[ED25519_PUBLIC_KEY_LEN])
+// 						const uint8_t *context, size_t context_len);
+//
+// Standard ARM ABI: X0 = message, X1 = message_len, X2 = signature, X3 = public_key,
+//		X4 = context, X5 = context_len
+// ----------------------------------------------------------------------------
+ed25519ph_verify_no_self_test_s2n_bignum:
