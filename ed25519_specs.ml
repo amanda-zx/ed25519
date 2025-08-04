@@ -200,7 +200,7 @@ Post:
 (* Pre- and post-conditions of Ed25519 subroutines - integration plan version 2 *)
 The checks for `message_len = SHA512_DIGEST_LENGTH` in the case of Ed25519ph in the internal functions become unnecessary.
 
-void ed25519_sign_common_s2n_bignum(
+void ed25519_sign_common(
     uint8_t out_sig[ED25519_SIGNATURE_LEN], const uint8_t *message,
     size_t message_len, const uint8_t private_key[ED25519_PRIVATE_KEY_LEN],
     uint8_t *dom2_buffer, size_t dom2_buffer_len)
@@ -216,7 +216,7 @@ Post:
      dom2-related pre-conditions must be true *)
 
      
-int ed25519_verify_common_bignum(
+int ed25519_verify_common(
     const uint8_t *message, size_t message_len,
     const uint8_t signature[ED25519_SIGNATURE_LEN],
     const uint8_t public_key[ED25519_PUBLIC_KEY_LEN],

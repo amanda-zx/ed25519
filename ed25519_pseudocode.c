@@ -27,7 +27,7 @@ void ed25519_keypair_from_seed_s2n_bignum (
   edwards25519_encode(A, s_B);
 }
 
-void ed25519_sign_common_s2n_bignum(
+void ed25519_sign_common(
     uint8_t out_sig[ED25519_SIGNATURE_LEN], const uint8_t *message,
     size_t message_len, const uint8_t private_key[ED25519_PRIVATE_KEY_LEN],
     uint8_t *dom2_buffer, size_t dom2_buffer_len) {
@@ -75,7 +75,7 @@ void ed25519_sign_common_s2n_bignum(
   bignum_madd_n25519_selector(out_sig + 32, k, s, r);
 }
 
-int ed25519_verify_common_s2n_bignum(
+int ed25519_verify_common(
     const uint8_t *message, size_t message_len,
     const uint8_t signature[ED25519_SIGNATURE_LEN],
     const uint8_t public_key[ED25519_PUBLIC_KEY_LEN],
@@ -87,7 +87,7 @@ int ed25519_verify_common_s2n_bignum(
   //  - signature[0:31]: encoded point R.
   //  - signature[32:63]: integer S.
 
-  // S must be in the range [0, order) in order to prevent signature
+  // S must be in the range [0, ORDER) in order to prevent signature
   // malleability. ORDER is the order of curve25519 in little-endian form.
   uint8_t order[32] = ORDER;
   if (bignum_le(32, order, 32, signature + 32)) return 0;
@@ -129,7 +129,7 @@ int ed25519_sign_no_self_test_s2n_bignum(
     uint8_t out_sig[ED25519_SIGNATURE_LEN], const uint8_t *message,
     size_t message_len, const uint8_t private_key[ED25519_PRIVATE_KEY_LEN]) {
 
-  ed25519_sign_common_s2n_bignum(out_sig, message, message_len, private_key, NULL, 0);
+  ed25519_sign_common(out_sig, message, message_len, private_key, NULL, 0);
   return 1;
 }
 
@@ -138,7 +138,7 @@ int ed25519_verify_no_self_test_s2n_bignum(
     const uint8_t signature[ED25519_SIGNATURE_LEN],
     const uint8_t public_key[ED25519_PUBLIC_KEY_LEN]) {
   
-  return ed25519_verify_common_s2n_bignum(
+  return ed25519_verify_common(
     message, message_len, signature[ED25519_SIGNATURE_LEN],
     public_key[ED25519_PUBLIC_KEY_LEN], NULL, 0);
 }
@@ -158,7 +158,7 @@ int ed25519ctx_sign_no_self_test_s2n_bignum(
   dom2_buffer[MAX_DOM2_SIZE] =
      DOM2_PREFIX || 0x00 || (uint8_t) ctx_len || context[0:ctx_len - 1];
 
-  ed25519_sign_common_s2n_bignum(out_sig, message, message_len, private_key,
+  ed25519_sign_common(out_sig, message, message_len, private_key,
     dom2_buffer, length(dom2_buffer));
   return 1;
 }
@@ -177,7 +177,7 @@ int ed25519ctx_verify_no_self_test_s2n_bignum(
   dom2_buffer[MAX_DOM2_SIZE] =
      DOM2_PREFIX || 0x00 || (uint8_t) ctx_len || context[0:ctx_len - 1];
   
-  return ed25519_verify_common_s2n_bignum(
+  return ed25519_verify_common(
     message, message_len, signature[ED25519_SIGNATURE_LEN],
     public_key[ED25519_PUBLIC_KEY_LEN], dom2_buffer, length(dom2_buffer));
 }
@@ -201,7 +201,7 @@ int ed25519ph_sign_no_self_test_s2n_bignum(
   uint8_t digest[SHA512_DIGEST_LENGTH];
   digest[0:64] = sha512_s2n_bignum(message);
 
-  ed25519_sign_common_s2n_bignum(out_sig, digest, SHA512_DIGEST_LEN, private_key,
+  ed25519_sign_common(out_sig, digest, SHA512_DIGEST_LEN, private_key,
     dom2_buffer, length(dom2_buffer));
   return 1;
 }
@@ -211,8 +211,6 @@ int ed25519ph_verify_no_self_test_s2n_bignum(
     const uint8_t signature[ED25519_SIGNATURE_LEN],
     const uint8_t public_key[ED25519_PUBLIC_KEY_LEN], const uint8_t *context,
     size_t context_len) {
-  // Ed25519 verify: rfc8032 5.1.7
-
   // Ed25519ph requires a context at most 255 bytes long
   if (ctx_len > 255) {
       return 0;
@@ -225,7 +223,7 @@ int ed25519ph_verify_no_self_test_s2n_bignum(
   uint8_t digest[SHA512_DIGEST_LENGTH];
   digest[0:64] = sha512_s2n_bignum(message);
   
-  return ed25519_verify_common_s2n_bignum(
+  return ed25519_verify_common(
     digest, SHA512_DIGEST_LEN, signature[ED25519_SIGNATURE_LEN],
     public_key[ED25519_PUBLIC_KEY_LEN], dom2_buffer, length(dom2_buffer));
   }
