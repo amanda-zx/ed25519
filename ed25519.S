@@ -90,7 +90,8 @@ ed25519_keypair_from_seed_s2n_bignum:
 ed25519_sign_common:
 
 // Stack layout:  X19, X20, X21, X22, X23, X24, sha[216], h[64], r[64], r_B[64], k[64], padding[8]
-	stp x19, x20, [sp, #-528]!
+	sub sp, sp, #528
+	stp x19, x20, [sp]
 	stp x21, x22, [sp, #16]
 	stp x23, x24, [sp, #32]
 	mov x19, x0
@@ -133,12 +134,12 @@ ed25519_sign_common:
 
 	add x0, sp, #48
 	bl sha512_init
-	cbz x24 .L1
+	cbz x24, .L1
 	add x0, sp, #48
     mov x1, x23
     mov x2, x24
 	bl sha512_update
-.L1
+.L1:
 	add x0, sp, #48
     add x1, sp, #296
     mov x2, #32
@@ -177,12 +178,12 @@ ed25519_sign_common:
 // k[0:63] = sha512_s2n_bignum(dom2_buffer || out_sig[0:31] || private_key[32:63] || message);
 	add x0, sp, #48
 	bl sha512_init
-	cbz x24 .L2
+	cbz x24, .L2
 	add x0, sp, #48
     mov x1, x23
     mov x2, x24
 	bl sha512_update
-.L2
+.L2:
 	add x0, sp, #48
     mov x1, x19
     mov x2, #32
@@ -217,9 +218,10 @@ ed25519_sign_common:
 	bl bignum_madd_n25519_alt
 
 // Restore callee-saved registers
+	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
 	ldp x23, x24, [sp, #32]
-	ldp x19, x20, [sp], #528 
+	add sp, sp, #528 
 	ret
 
 
@@ -244,7 +246,8 @@ ed25519_verify_common:
 
 // Stack layout:  X19, X20, X21, X22, X23, X24, order[32], A[64], sha[216],
 // 		k[64], R_computed[64], r_computed_encoded[32]
-	stp x19, x20, [sp, #-528]!
+	sub sp, sp, #528
+	stp x19, x20, [sp]
 	stp x21, x22, [sp, #16]
 	stp x23, x24, [sp, #32]
 	mov x19, x0
@@ -273,14 +276,14 @@ ed25519_verify_common:
 	stp x0, x1, [sp, #48]
 	mov x0, xzr
 	mov x1, #1
-	lsl x1, #63
+	lsl x1, x1, #63
 	stp x0, x1, [sp, #64]
 	mov x0, #32
 	add x1, sp, #48
 	mov x2, #32
 	add x3, x21, #32
 	bl bignum_le
-	cbnz x0 .L3
+	cbnz x0, .L3
 
 // Decode public key as A.
 // uint64_t A[8];
@@ -288,25 +291,25 @@ ed25519_verify_common:
 	add x0, sp, #80
 	mov x1, x22
 	bl edwards25519_decode_alt
-	cbnz x0 .L3
+	cbnz x0, .L3
 
 // Step: rfc8032 5.1.7.2
 // uint8_t k[SHA512_DIGEST_LENGTH];
 // k[0:63] = sha512_s2n_bignum(dom2_buffer || signature[0:31] || public_key || message).
 	add x0, sp, #144
 	bl sha512_init
-	cbz x24 .L4
+	cbz x24, .L4
 	add x0, sp, #144
     mov x1, x23
     mov x2, x24
 	bl sha512_update
-.L4
+.L4:
 	add x0, sp, #144
     mov x1, x21
     mov x2, #32
 	bl sha512_update
 	add x0, sp, #144
-    add x1, x22
+    mov x1, x22
     mov x2, #32
 	bl sha512_update
 	add x0, sp, #144
@@ -366,14 +369,15 @@ ed25519_verify_common:
 // return memcmp(R_computed_encoded, signature[0:31], sizeof(R_computed_encoded)) == 0;
 	mov x0, #1
 	b .L5
-.L3
+.L3:
 	mov x0, xzr
 
 // Restore callee-saved registers
-.L5
+.L5:
+	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
 	ldp x23, x24, [sp, #32]
-	ldp x19, x20, [sp], #528 
+	add sp, sp, #528 
 	ret
 
 
@@ -465,11 +469,11 @@ dom2_common:
 	add x4, x0, #34
 	mov x5, xzr
 	b .L6
-.L7
+.L7:
 	ldrb w6, [x2, x5]
 	strb w6, [x4, x5]
 	add x5, x5, #1
-.L6
+.L6:
 	cmp x3, x5
 	bne .L7
 
@@ -507,7 +511,7 @@ ed25519ctx_sign_no_self_test_s2n_bignum:
 
 // Ed25519ctx requires a non-empty context at most 255 bytes long
 // if (ctx_len = 0 || ctx_len > 255) return 0;
-	cbz x5 .L8
+	cbz x5, .L8
 	cmp x5, #255
 	bhi .L8
 
@@ -532,9 +536,9 @@ ed25519ctx_sign_no_self_test_s2n_bignum:
 // return 1;
 	mov x0, #1
 	b .L9
-.L8
+.L8:
 	mov x0, xzr
-.L9
+.L9:
 	ldp x21, x22, [sp, #16]
 	ldp x19, x20, [sp], #336
 	ret
@@ -568,7 +572,7 @@ ed25519ctx_verify_no_self_test_s2n_bignum:
 
 // Ed25519ctx requires a non-empty context at most 255 bytes long
 // if (ctx_len = 0 || ctx_len > 255) return 0;
-	cbz x5 .L10
+	cbz x5, .L10
 	cmp x5, #255
 	bhi .L10
 
@@ -592,9 +596,9 @@ ed25519ctx_verify_no_self_test_s2n_bignum:
 	bl ed25519_verify_common
 	b .L11
 
-.L10
+.L10:
 	mov x0, xzr
-.L11
+.L11:
 	ldp x21, x22, [sp, #16]
 	ldp x19, x20, [sp], #336
 	ret
@@ -620,7 +624,8 @@ ed25519ctx_verify_no_self_test_s2n_bignum:
 ed25519ph_sign_no_self_test_s2n_bignum:
 
 // Stack layout: X19, X20, X21, X22, dom2_buffer[289], padding[7], dom2_buffer_len[8], sha[216], digest[64], padding[8]
-	stp x19, x20, [sp, #-624]!
+	sub sp, sp, #624
+	stp x19, x20, [sp]
 	stp x21, x22, [sp, #16]
 	mov x19, x0
 	mov x20, x1
@@ -667,11 +672,12 @@ ed25519ph_sign_no_self_test_s2n_bignum:
 // return 1;
 	mov x0, #1
 	b .L13
-.L12
+.L12:
 	mov x0, xzr
-.L13
+.L13:
+	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
-	ldp x19, x20, [sp], #624
+	add sp, sp, #624
 	ret
 
 
@@ -694,7 +700,8 @@ ed25519ph_sign_no_self_test_s2n_bignum:
 ed25519ph_verify_no_self_test_s2n_bignum:
 
 // Stack layout: X19, X20, X21, X22, dom2_buffer[289], padding[7], dom2_buffer_len[8], sha[216], digest[64], padding[8]
-	stp x19, x20, [sp, #-624]!
+	sub sp, sp, #624
+	stp x19, x20, [sp]
 	stp x21, x22, [sp, #16]
 	mov x19, x0
 	mov x20, x1
@@ -739,9 +746,10 @@ ed25519ph_verify_no_self_test_s2n_bignum:
 	ldr x5, [sp, #328]
 	bl ed25519_verify_common
 	b .L15
-.L14
+.L14:
 	mov x0, xzr
-.L15
+.L15:
+	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
-	ldp x19, x20, [sp], #624
+	add sp, sp, #624
 	ret
