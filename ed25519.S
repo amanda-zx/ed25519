@@ -134,12 +134,12 @@ ed25519_sign_common:
 
 	add x0, sp, #48
 	bl sha512_init
-	cbz x24, .L1
+	cbz x24, ed25519_sign_common_pure
 	add x0, sp, #48
     mov x1, x23
     mov x2, x24
 	bl sha512_update
-.L1:
+ed25519_sign_common_pure:
 	add x0, sp, #48
     add x1, sp, #296
     mov x2, #32
@@ -178,12 +178,12 @@ ed25519_sign_common:
 // k[0:63] = sha512_s2n_bignum(dom2_buffer || out_sig[0:31] || private_key[32:63] || message);
 	add x0, sp, #48
 	bl sha512_init
-	cbz x24, .L2
+	cbz x24, ed25519_sign_common_pure2
 	add x0, sp, #48
     mov x1, x23
     mov x2, x24
 	bl sha512_update
-.L2:
+ed25519_sign_common_pure2:
 	add x0, sp, #48
     mov x1, x19
     mov x2, #32
@@ -283,7 +283,7 @@ ed25519_verify_common:
 	mov x2, #32
 	add x3, x21, #32
 	bl bignum_le
-	cbnz x0, .L3
+	cbnz x0, ed25519_verify_common_fail
 
 // Decode public key as A.
 // uint64_t A[8];
@@ -291,19 +291,19 @@ ed25519_verify_common:
 	add x0, sp, #80
 	mov x1, x22
 	bl edwards25519_decode_alt
-	cbnz x0, .L3
+	cbnz x0, ed25519_verify_common_fail
 
 // Step: rfc8032 5.1.7.2
 // uint8_t k[SHA512_DIGEST_LENGTH];
 // k[0:63] = sha512_s2n_bignum(dom2_buffer || signature[0:31] || public_key || message).
 	add x0, sp, #144
 	bl sha512_init
-	cbz x24, .L4
+	cbz x24, ed25519_verify_common_pure
 	add x0, sp, #144
     mov x1, x23
     mov x2, x24
 	bl sha512_update
-.L4:
+ed25519_verify_common_pure:
 	add x0, sp, #144
     mov x1, x21
     mov x2, #32
@@ -356,24 +356,24 @@ ed25519_verify_common:
 	ldp x0, x1, [sp, #488]
 	ldp x2, x3, [x21]
 	cmp x0, x2
-	bne .L3
+	bne ed25519_verify_common_fail
 	cmp x1, x3
-	bne .L3
+	bne ed25519_verify_common_fail
 	ldp x0, x1, [sp, #504]
 	ldp x2, x3, [x21, #16]
 	cmp x0, x2
-	bne .L3
+	bne ed25519_verify_common_fail
 	cmp x1, x3
-	bne .L3
+	bne ed25519_verify_common_fail
 
 // return memcmp(R_computed_encoded, signature[0:31], sizeof(R_computed_encoded)) == 0;
 	mov x0, #1
-	b .L5
-.L3:
+	b ed25519_verify_common_epilogue
+ed25519_verify_common_fail:
 	mov x0, xzr
 
 // Restore callee-saved registers
-.L5:
+ed25519_verify_common_epilogue:
 	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
 	ldp x23, x24, [sp, #32]
@@ -468,14 +468,14 @@ dom2_common:
 	strb w3, [x0, #33]
 	add x4, x0, #34
 	mov x5, xzr
-	b .L6
-.L7:
+	b dom2_common_loop
+dom2_common_loop_body:
 	ldrb w6, [x2, x5]
 	strb w6, [x4, x5]
 	add x5, x5, #1
-.L6:
+dom2_common_loop:
 	cmp x3, x5
-	bne .L7
+	bne dom2_common_loop_body
 
 // return 32 + 1 + 1 + ctx_len;
 	add x0, x3, #34
@@ -511,9 +511,9 @@ ed25519ctx_sign_no_self_test_s2n_bignum:
 
 // Ed25519ctx requires a non-empty context at most 255 bytes long
 // if (ctx_len = 0 || ctx_len > 255) return 0;
-	cbz x5, .L8
+	cbz x5, ed25519ctx_sign_fail
 	cmp x5, #255
-	bhi .L8
+	bhi ed25519ctx_sign_fail
 
 // uint8_t dom2_buffer[MAX_DOM2_SIZE];
 // x0 = dom2_common(dom2_buffer, 0, context, context_len);
@@ -535,10 +535,10 @@ ed25519ctx_sign_no_self_test_s2n_bignum:
 
 // return 1;
 	mov x0, #1
-	b .L9
-.L8:
+	b ed25519ctx_sign_epilogue
+ed25519ctx_sign_fail:
 	mov x0, xzr
-.L9:
+ed25519ctx_sign_epilogue:
 	ldp x21, x22, [sp, #16]
 	ldp x19, x20, [sp], #336
 	ret
@@ -572,9 +572,9 @@ ed25519ctx_verify_no_self_test_s2n_bignum:
 
 // Ed25519ctx requires a non-empty context at most 255 bytes long
 // if (ctx_len = 0 || ctx_len > 255) return 0;
-	cbz x5, .L10
+	cbz x5, ed25519ctx_verify_fail
 	cmp x5, #255
-	bhi .L10
+	bhi ed25519ctx_verify_fail
 
 // uint8_t dom2_buffer[MAX_DOM2_SIZE];
 // x0 = dom2_common(dom2_buffer, 0, context, context_len);
@@ -594,11 +594,11 @@ ed25519ctx_verify_no_self_test_s2n_bignum:
 	mov x3, x22
 	add x4, sp, #32
 	bl ed25519_verify_common
-	b .L11
+	b ed25519ctx_verify_epilogue
 
-.L10:
+ed25519ctx_verify_fail:
 	mov x0, xzr
-.L11:
+ed25519ctx_verify_epilogue:
 	ldp x21, x22, [sp, #16]
 	ldp x19, x20, [sp], #336
 	ret
@@ -635,7 +635,7 @@ ed25519ph_sign_no_self_test_s2n_bignum:
 // Ed25519ph requires a context at most 255 bytes long
 //  if (ctx_len > 255) return 0;
 	cmp x5, #255
-	bhi .L12
+	bhi ed25519ph_sign_fail
 
 // uint8_t dom2_buffer[MAX_DOM2_SIZE];
 // x0 = dom2_common(dom2_buffer, 1, context, context_len);
@@ -671,10 +671,10 @@ ed25519ph_sign_no_self_test_s2n_bignum:
 
 // return 1;
 	mov x0, #1
-	b .L13
-.L12:
+	b ed25519ph_sign_epilogue
+ed25519ph_sign_fail:
 	mov x0, xzr
-.L13:
+ed25519ph_sign_epilogue:
 	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
 	add sp, sp, #624
@@ -711,7 +711,7 @@ ed25519ph_verify_no_self_test_s2n_bignum:
 // Ed25519ph requires a context at most 255 bytes long
 //  if (ctx_len > 255) return 0;
 	cmp x5, #255
-	bhi .L14
+	bhi ed25519ph_verify_fail
 
 // uint8_t dom2_buffer[MAX_DOM2_SIZE];
 // x0 = dom2_common(dom2_buffer, 1, context, context_len);
@@ -745,10 +745,10 @@ ed25519ph_verify_no_self_test_s2n_bignum:
 	add x4, sp, #32
 	ldr x5, [sp, #328]
 	bl ed25519_verify_common
-	b .L15
-.L14:
+	b ed25519ph_verify_epilogue
+ed25519ph_verify_fail:
 	mov x0, xzr
-.L15:
+ed25519ph_verify_epilogue:
 	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
 	add sp, sp, #624
