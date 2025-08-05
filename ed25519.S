@@ -18,7 +18,7 @@
 ed25519_keypair_from_seed_s2n_bignum:
 
 // Stack layout: X19, X20, X30, sha[216], h[64], s_B[32]
-	stp x19, x20, [sp, #-336]!
+    stp x19, x20, [sp, #-336]!
 	str x30, [sp, #16]
     mov x19, x0
     mov x20, x1
@@ -52,7 +52,6 @@ ed25519_keypair_from_seed_s2n_bignum:
 //   where s = h[0:31]
 // uint64_t s_B[8];
 // edwards25519_scalarmulbase_alt(s_B, h);
-
 	add x0, sp, #304
 	add x1, sp, #240
   	bl edwards25519_scalarmulbase_alt
@@ -248,6 +247,7 @@ ed25519_verify_common:
 	stp x19, x20, [sp]
 	stp x21, x22, [sp, #16]
 	stp x23, x24, [sp, #32]
+    str x30, [sp, #48]
 	mov x19, x0
 	mov x20, x1
 	mov x21, x2
@@ -271,13 +271,13 @@ ed25519_verify_common:
 	movk	x1, #0xa2f7, lsl 16
 	movk	x1, #0xf9de, lsl 32
 	movk	x1, #0x14de, lsl 48
-	stp x0, x1, [sp, #48]
+	stp x0, x1, [sp, #56]
 	mov x0, xzr
 	mov x1, #1
 	lsl x1, x1, #63
-	stp x0, x1, [sp, #64]
+	stp x0, x1, [sp, #72]
 	mov x0, #32
-	add x1, sp, #48
+	add x1, sp, #56
 	mov x2, #32
 	add x3, x21, #32
 	bl bignum_le
@@ -286,7 +286,7 @@ ed25519_verify_common:
 // Decode public key as A.
 // uint64_t A[8];
 // if (edwards25519_decode_alt(A, public_key) != 0) return 0;
-	add x0, sp, #80
+	add x0, sp, #88
 	mov x1, x22
 	bl edwards25519_decode_alt
 	cbnz x0, ed25519_verify_common_fail
@@ -294,28 +294,28 @@ ed25519_verify_common:
 // Step: rfc8032 5.1.7.2
 // uint8_t k[SHA512_DIGEST_LENGTH];
 // k[0:63] = sha512_s2n_bignum(dom2_buffer || signature[0:31] || public_key || message).
-	add x0, sp, #144
+	add x0, sp, #152
 	bl sha512_init
 	cbz x24, ed25519_verify_common_pure
-	add x0, sp, #144
+	add x0, sp, #152
     mov x1, x23
     mov x2, x24
 	bl sha512_update
 ed25519_verify_common_pure:
-	add x0, sp, #144
+	add x0, sp, #152
     mov x1, x21
     mov x2, #32
 	bl sha512_update
-	add x0, sp, #144
+	add x0, sp, #152
     mov x1, x22
     mov x2, #32
 	bl sha512_update
-	add x0, sp, #144
+	add x0, sp, #152
     mov x1, x19
     mov x2, x20
 	bl sha512_update
-	add x0, sp, #360
-	add x1, sp, #144
+	add x0, sp, #368
+	add x1, sp, #152
 	bl sha512_final
 
 // Step: rfc8032 5.1.7.3
@@ -327,7 +327,7 @@ ed25519_verify_common_pure:
 // In standard coordinates, that is simply negating the x coordinate.
 // See rfc8032 5.1.4.
 // bignum_neg_p25519(A, A);
-	add x0, sp, #80
+	add x0, sp, #88
 	mov x1, x0
 	bl bignum_neg_p25519
 
@@ -337,27 +337,28 @@ ed25519_verify_common_pure:
 // bignum_mod_n25519(k, 8, k);
 // edwards25519_scalarmuldouble_alt(R_computed, k, A, signature[32:63]);
 // edwards25519_encode(R_computed_encoded, R_computed);
-	add x0, sp, #360
+	add x0, sp, #368
 	mov x1, #8
 	mov x2, x0
 	bl bignum_mod_n25519
-	add x0, sp, #424
-	add x1, sp, #360
-	add x2, sp, #80
+	add x0, sp, #432
+	add x1, sp, #368
+	add x2, sp, #88
 	add x3, x21, #32
 	bl edwards25519_scalarmuldouble_alt
-	add x0, sp, #488
-	add x1, sp, #424
+	add x0, sp, #496
+	add x1, sp, #432
 	bl edwards25519_encode
 							
 // Comparison [S]B - [k]A' =? R_expected.
-	ldp x0, x1, [sp, #488]
+	ldp x0, x1, [sp, #496]
 	ldp x2, x3, [x21]
 	cmp x0, x2
 	bne ed25519_verify_common_fail
 	cmp x1, x3
 	bne ed25519_verify_common_fail
-	ldp x0, x1, [sp, #504]
+    add x4, sp, #512
+	ldp x0, x1, [x4]
 	ldp x2, x3, [x21, #16]
 	cmp x0, x2
 	bne ed25519_verify_common_fail
@@ -375,7 +376,8 @@ ed25519_verify_common_epilogue:
 	ldp x19, x20, [sp]
 	ldp x21, x22, [sp, #16]
 	ldp x23, x24, [sp, #32]
-	add sp, sp, #528 
+    ldr x30, [sp, #48]
+	add sp, sp, #528
 	ret
 
 
