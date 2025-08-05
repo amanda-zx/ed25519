@@ -17,8 +17,8 @@
 // ----------------------------------------------------------------------------
 ed25519_keypair_from_seed_s2n_bignum:
 
-// Stack layout: X19, X20, X30, sha[216], h[64], s_B[32]
-    stp x19, x20, [sp, #-336]!
+// Stack layout: X19, X20, X30, sha[216], h[64], s_B[64]
+    stp x19, x20, [sp, #-368]!
     str x30, [sp, #16]
     mov x19, x0
     mov x20, x1
@@ -64,7 +64,7 @@ ed25519_keypair_from_seed_s2n_bignum:
 
 // Restore callee-saved registers
     ldr x30, [sp, #16]
-    ldp	x19, x20, [sp], #336
+    ldp	x19, x20, [sp], #368
     ret
 
 
