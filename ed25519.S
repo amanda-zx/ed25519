@@ -276,9 +276,9 @@ ed25519_verify_common:
     mov x1, #1
     lsl x1, x1, #63
     stp x0, x1, [sp, #72]
-    mov x0, #32
+    mov x0, #4
     add x1, sp, #56
-    mov x2, #32
+    mov x2, #4
     add x3, x21, #32
     bl bignum_le
     cbnz x0, ed25519_verify_common_fail
