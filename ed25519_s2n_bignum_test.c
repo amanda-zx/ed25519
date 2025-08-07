@@ -33,7 +33,7 @@ void ed25519_test(const char *seed_str, const char *pub_key_str, const char *msg
     printf("\n");
 
     uint8_t pub_key[32];
-    ed25519_keypair_from_seed_s2n_bignum(pub_key, seed);
+    ed25519_public_key_from_seed_s2n_bignum(pub_key, seed);
     printf("public key:\n");
     print_bytes(pub_key, 32);
     printf("\n");
@@ -175,7 +175,7 @@ void ed25519ctx_test(const char *seed_str, const char *pub_key_str, const char *
     printf("\n");
 
     uint8_t pub_key[32];
-    ed25519_keypair_from_seed_s2n_bignum(pub_key, seed);
+    ed25519_public_key_from_seed_s2n_bignum(pub_key, seed);
     printf("public key:\n");
     print_bytes(pub_key, 32);
     printf("\n");
@@ -285,7 +285,7 @@ void ed25519ph_test(const char *seed_str, const char *pub_key_str, const char *m
     printf("\n");
 
     uint8_t pub_key[32];
-    ed25519_keypair_from_seed_s2n_bignum(pub_key, seed);
+    ed25519_public_key_from_seed_s2n_bignum(pub_key, seed);
     printf("public key:\n");
     print_bytes(pub_key, 32);
     printf("\n");
