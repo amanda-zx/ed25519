@@ -6761,116 +6761,116 @@ msg_schedule:
         .type   sha512_process_block, %function
 sha512_process_block:
 .LFB13:
-	.cfi_startproc
-	sub	sp, sp, #720
-	.cfi_def_cfa_offset 720
-	mov	x12, x0
-	add	x0, sp, 80
-	str	x19, [sp]
-	str     x30, [sp, 8]
-	.cfi_offset 29, -720
-	.cfi_offset 30, -712
-	bl	msg_schedule
-	tst	x12, 15
-	bne	.L8
-	ldp	x6, x7, [x12]
-	ldp	x4, x5, [x12, 16]
-	ldp	x2, x3, [x12, 32]
-	ldp	x0, x1, [x12, 48]
-	stp	x6, x7, [sp, 16]
-	stp	x4, x5, [sp, 32]
-	stp	x2, x3, [sp, 48]
-	stp	x0, x1, [sp, 64]
+        .cfi_startproc
+        sub     sp, sp, #720
+        .cfi_def_cfa_offset 720
+        mov     x12, x0
+        add     x0, sp, 80
+        str     x19, [sp]
+        str     x30, [sp, 8]
+        .cfi_offset 29, -720
+        .cfi_offset 30, -712
+        bl      msg_schedule
+        tst     x12, 15
+        bne     .L8
+        ldp     x6, x7, [x12]
+        ldp     x4, x5, [x12, 16]
+        ldp     x2, x3, [x12, 32]
+        ldp     x0, x1, [x12, 48]
+        stp     x6, x7, [sp, 16]
+        stp     x4, x5, [sp, 32]
+        stp     x2, x3, [sp, 48]
+        stp     x0, x1, [sp, 64]
 .L9:
-	adrp	x14, K
-	mov	x6, 1
-	add	x14, x14, :lo12:K
-	ldp	x5, x8, [sp, 16]
-	ldp	x7, x13, [sp, 32]
-	ldp	x3, x10, [sp, 48]
-	ldp	x9, x11, [sp, 64]
-	b	.L10
+        adrp     x14, K
+        mov     x6, 1
+        add     x14, x14, :lo12:K
+        ldp     x5, x8, [sp, 16]
+        ldp     x7, x13, [sp, 32]
+        ldp     x3, x10, [sp, 48]
+        ldp     x9, x11, [sp, 64]
+        b     .L10
 .L11:
-	mov	x7, x8
-	mov	x9, x10
-	mov	x8, x5
-	mov	x10, x3
-	mov	x5, x0
-	mov	x3, x2
+        mov     x7, x8
+        mov     x9, x10
+        mov     x8, x5
+        mov     x10, x3
+        mov     x5, x0
+        mov     x3, x2
 .L10:
-	lsl	x1, x6, 3
-	add	x4, sp, 80
-	ror	x0, x3, 18
-	add	x2, x14, x1
-	add	x15, x4, x1
-	eor	x0, x0, x3, ror 14
-	ror	x1, x5, 34
-	ldr	x16, [x2, -8]
-	eor	x1, x1, x5, ror 28
-	bic	x4, x9, x3
-	eor	x0, x0, x3, ror #(64 - 23)
-	and	x19, x3, x10
-	eor	x2, x7, x8
-	ldr	x17, [x15, -8]
-	eor	x4, x4, x19
-	eor	x1, x1, x5, ror #(64 - 25)
-	add	x0, x0, x4
-	and	x2, x2, x5
-	and	x4, x7, x8
-	add	x6, x6, 1
-	eor	x2, x2, x4
-	add	x1, x1, x2
-	add	x2, x16, x17
-	add	x0, x0, x2
-	add	x0, x0, x11
-	mov	x11, x9
-	add	x2, x13, x0
-	add	x0, x0, x1
-	mov	x13, x7
-	cmp	x6, 81
-	bne	.L11
-	ldp	x6, x4, [x12]
-	ldp	x19, x30, [sp]
-	add	x6, x6, x0
-	add	x4, x4, x5
-	ldp	x0, x5, [x12, 24]
-	stp	x6, x4, [x12]
-	add	x0, x0, x7
-	add	x5, x5, x2
-	ldr	x1, [x12, 16]
-	str	x5, [x12, 32]
-	add	x1, x1, x8
-	stp	x1, x0, [x12, 16]
-	ldp	x4, x1, [x12, 40]
-	ldr	x0, [x12, 56]
-	add	x2, x4, x3
-	add	x1, x1, x10
-	stp	x2, x1, [x12, 40]
-	add	x0, x0, x9
-	str	x0, [x12, 56]
-	add	sp, sp, 720
-	.cfi_remember_state
-	.cfi_restore 29
-	.cfi_restore 30
-	.cfi_def_cfa_offset 0
-	ret
+        lsl     x1, x6, 3
+        add     x4, sp, 80
+        ror     x0, x3, 18
+        add     x2, x14, x1
+        add     x15, x4, x1
+        eor     x0, x0, x3, ror 14
+        ror     x1, x5, 34
+        ldr     x16, [x2, -8]
+        eor     x1, x1, x5, ror 28
+        bic     x4, x9, x3
+        eor     x0, x0, x3, ror #(64 - 23)
+        and     x19, x3, x10
+        eor     x2, x7, x8
+        ldr     x17, [x15, -8]
+        eor     x4, x4, x19
+        eor     x1, x1, x5, ror #(64 - 25)
+        add     x0, x0, x4
+        and     x2, x2, x5
+        and     x4, x7, x8
+        add     x6, x6, 1
+        eor     x2, x2, x4
+        add     x1, x1, x2
+        add     x2, x16, x17
+        add     x0, x0, x2
+        add     x0, x0, x11
+        mov     x11, x9
+        add     x2, x13, x0
+        add     x0, x0, x1
+        mov     x13, x7
+        cmp     x6, 81
+        bne     .L11
+        ldp     x6, x4, [x12]
+        ldp     x19, x30, [sp]
+        add     x6, x6, x0
+        add     x4, x4, x5
+        ldp     x0, x5, [x12, 24]
+        stp     x6, x4, [x12]
+        add     x0, x0, x7
+        add     x5, x5, x2
+        ldr     x1, [x12, 16]
+        str     x5, [x12, 32]
+        add     x1, x1, x8
+        stp     x1, x0, [x12, 16]
+        ldp     x4, x1, [x12, 40]
+        ldr     x0, [x12, 56]
+        add     x2, x4, x3
+        add     x1, x1, x10
+        stp     x2, x1, [x12, 40]
+        add     x0, x0, x9
+        str     x0, [x12, 56]
+        add     sp, sp, 720
+        .cfi_remember_state
+        .cfi_restore 29
+        .cfi_restore 30
+        .cfi_def_cfa_offset 0
+        ret
 .L8:
-	.cfi_restore_state
-	ldp	x1, x0, [x12]
-	ldr	x2, [x12, 16]
-	stp	x1, x0, [sp, 16]
-	ldp	x1, x0, [x12, 24]
-	str	x2, [sp, 32]
-	ldr	x2, [x12, 40]
-	stp	x1, x0, [sp, 40]
-	ldp	x1, x0, [x12, 48]
-	str	x2, [sp, 56]
-	stp	x1, x0, [sp, 64]
-	b	.L9
-	.cfi_endproc
+        .cfi_restore_state
+        ldp     x1, x0, [x12]
+        ldr     x2, [x12, 16]
+        stp     x1, x0, [sp, 16]
+        ldp     x1, x0, [x12, 24]
+        str     x2, [sp, 32]
+        ldr     x2, [x12, 40]
+        stp     x1, x0, [sp, 40]
+        ldp     x1, x0, [x12, 48]
+        str     x2, [sp, 56]
+        stp     x1, x0, [sp, 64]
+        b       .L9
+        .cfi_endproc
 .LFE13:
-	.size	sha512_process_block, .-sha512_process_block
-	.type	sha512_process_blocks, %function
+        .size     sha512_process_block, .-sha512_process_block
+        .type     sha512_process_blocks, %function
 sha512_process_blocks:
 .LFB14:
         .cfi_startproc
