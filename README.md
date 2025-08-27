@@ -14,4 +14,4 @@ ed25519_pseudocode_specs.md: pseudocode of the specifications for all the Ed2551
 
 ed25519_s2n_bignum_test.c: test harness testing the implementation against the Ed25519 test vectors in RFC 8032. See compilation_pipeline.md for how to compile and run the test.
 
-Final integration plan.md: pseudocode implementation of Ed25519 subroutines, pseudocode showing how the top-level routines should be integrated into AWS-LC, and pseudocode specifications of the top-level routines.
+Ed25519 final integration plan.md: pseudocode implementation of Ed25519 subroutines, pseudocode showing how the top-level routines should be integrated into AWS-LC, and pseudocode specifications of the top-level routines.
