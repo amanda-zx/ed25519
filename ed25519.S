@@ -125,7 +125,7 @@ ed25519_sign_common:
 // Step: rfc8032 5.1.6.2
 // prefix = h[32:63]
 // uint8_t r[SHA512_DIGEST_LENGTH];
-// r[0:63] = sha512_s2n_bignum(dom2_buffer || h[32:63] || message);
+// r[0:63] = sha512_s2n_bignum(dom2_buffer || h[32:63] || PH(message));
     add x0, sp, #56
     bl sha512_init
     cbz x24, ed25519_sign_common_pure
@@ -169,7 +169,7 @@ ed25519_sign_common_pure:
 // R = out_sig[0:31]
 // A = private_key[32:63]
 // uint8_t k[SHA512_DIGEST_LENGTH];
-// k[0:63] = sha512_s2n_bignum(dom2_buffer || out_sig[0:31] || private_key[32:63] || message);
+// k[0:63] = sha512_s2n_bignum(dom2_buffer || out_sig[0:31] || private_key[32:63] || PH(message));
     add x0, sp, #56
     bl sha512_init
     cbz x24, ed25519_sign_common_pure2
@@ -290,7 +290,7 @@ ed25519_verify_common:
 
 // Step: rfc8032 5.1.7.2
 // uint8_t k[SHA512_DIGEST_LENGTH];
-// k[0:63] = sha512_s2n_bignum(dom2_buffer || signature[0:31] || public_key || message).
+// k[0:63] = sha512_s2n_bignum(dom2_buffer || signature[0:31] || public_key || PH(message)).
     add x0, sp, #152
     bl sha512_init
     cbz x24, ed25519_verify_common_pure
